@@ -8,7 +8,6 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -16,7 +15,7 @@ func Report(context *plan.ExecuteContext) error {
 
 	var conf = context.Config
 
-	jobReport := fmt.Sprintf(_jobReportTemplate, conf.Env, conf.Token, conf.Amount, conf.ReceiversCount, conf.BatchSize, conf.ReportFile, context.Sender, context.StartTime.Format(time.RFC3339), context.CompleteTime.Format(time.RFC3339))
+	jobReport := fmt.Sprintf(_jobReportTemplate, conf.Env, conf.Token, conf.Sum, conf.ReceiversCount, conf.BatchSize, conf.ReportFile, context.Sender, context.StartTime.Format(time.RFC3339), context.CompleteTime.Format(time.RFC3339))
 
 	executeReport, error := executeReport(context)
 	if error != nil {
@@ -46,8 +45,6 @@ func executeReport(context *plan.ExecuteContext) (string, error) {
 
 	for index, task := range context.Tasks {
 		executeTaskList[index].Token = task.Token
-		executeTaskList[index].Receivers = strings.Join(task.Receivers, ",")
-		executeTaskList[index].EachAmount = strconv.FormatInt(task.EachAmount, 10)
 		executeTaskList[index].TxHash = task.TxHash
 		executeTaskList[index].Affirmed = strconv.FormatBool(task.Affirmed)
 		if task.Exception != nil {

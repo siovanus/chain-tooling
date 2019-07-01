@@ -6,7 +6,6 @@ import (
 	"github.com/binance-chain/go-sdk/common/types"
 	"github.com/binance-chain/go-sdk/types/msg"
 	"log"
-	"strings"
 	"time"
 )
 
@@ -31,24 +30,23 @@ func (ex *Executor) Execute() error {
 
 	for _, task := range context.Tasks {
 		time.Sleep(time.Duration(context.Config.BatchInterval) * time.Second)
-		receivers := task.Receivers
-		var transfers = make([]msg.Transfer, len(receivers))
+		txs := task.Txs
+		var transfers = make([]msg.Transfer, len(txs))
 
-		for index, receiver := range receivers {
-			receiverAddr, err := types.AccAddressFromBech32(receiver)
+		for index, tx := range txs {
+			receiverAddr, err := types.AccAddressFromBech32(tx.To)
 			if err != nil {
 				task.Exception = err
 				break
 			}
 			transfers[index].ToAddr = receiverAddr
-			transfers[index].Coins = types.Coins{types.Coin{task.Token, task.EachAmount}}
+			transfers[index].Coins = types.Coins{types.Coin{task.Token, tx.Amount}}
 		}
 
 		if task.Exception != nil {
 			continue
 		}
 
-		log.Println(fmt.Sprintf("Trying to send %d(each) %s to %s", task.EachAmount, task.Token, strings.Join(task.Receivers, ",")))
 		result, err := client.SendToken(transfers, true)
 
 		if err == nil {

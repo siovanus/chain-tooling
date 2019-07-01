@@ -14,8 +14,7 @@ type ExecuteContext struct {
 
 	KeyManager keys.KeyManager
 
-	EachAmount int64
-	Sender     string
+	Sender string
 
 	Tasks []*ExecuteTask
 
@@ -29,8 +28,7 @@ func (ex *ExecuteContext) GetDexClient() (client.DexClient, error) {
 
 type ExecuteTask struct {
 	Token          string
-	Receivers      []string
-	EachAmount     int64
+	Txs            []*config.Tx
 	TxHash         string
 	Affirmed       bool
 	Exception      error
@@ -56,7 +54,6 @@ func (pm *PlanMaker) InitializeContext() error {
 	context.KeyManager = km
 
 	context.Sender = km.GetAddr().String()
-	context.EachAmount = context.Config.Amount / int64(context.Config.ReceiversCount)
 
 	pm.Context = &context
 	return nil
@@ -84,7 +81,7 @@ func (pm *PlanMaker) MakeExecutePlan() error {
 		}
 	}
 
-	if balanceAmount < context.Config.Amount {
+	if balanceAmount < context.Config.Sum {
 		return errors.New("Your balance is not enough for this airdrop ")
 	}
 
@@ -97,7 +94,6 @@ func (pm *PlanMaker) MakeExecutePlan() error {
 		task = &ExecuteTask{}
 
 		task.Token = context.Config.Token
-		task.EachAmount = context.EachAmount
 
 		var start = index * batchSize
 		var end = (index + 1) * batchSize
@@ -106,7 +102,7 @@ func (pm *PlanMaker) MakeExecutePlan() error {
 			end = context.Config.ReceiversCount
 		}
 
-		task.Receivers = context.Config.Receivers[start:end]
+		task.Txs = context.Config.Txs[start:end]
 		context.Tasks[index] = task
 	}
 
