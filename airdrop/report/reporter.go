@@ -2,6 +2,7 @@ package report
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/binance-chain/chain-tooling/airdrop/plan"
 	"github.com/landoop/tableprinter"
@@ -46,6 +47,8 @@ func executeReport(context *plan.ExecuteContext) (string, error) {
 	for index, task := range context.Tasks {
 		executeTaskList[index].Token = task.Token
 		executeTaskList[index].TxHash = task.TxHash
+		v, _ := json.Marshal(task.Txs)
+		executeTaskList[index].Receivers = string(v)
 		executeTaskList[index].Affirmed = strconv.FormatBool(task.Affirmed)
 		if task.Exception != nil {
 			executeTaskList[index].Exception = task.Exception.Error()
